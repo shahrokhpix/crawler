@@ -1,6 +1,40 @@
-# Fars News Crawler
+# Fars News Crawler 🕷️
+
+A powerful, production-ready web crawler for Fars News website built with Node.js, Puppeteer, and PostgreSQL. Now with full Docker support for easy deployment on Ubuntu servers.
+
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 سیستم خبرخوان خودکار فارس نیوز با قابلیت کرال چندمنبعه و مدیریت هوشمند محتوا
+
+## 🚀 Quick Start (Docker)
+
+### One-Command Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/shahrokhpix/crawler/main/quick-start.sh | bash
+```
+
+### Manual Docker Installation
+
+```bash
+# Clone repository
+git clone https://github.com/shahrokhpix/crawler.git
+cd crawler
+
+# Copy environment file
+cp .env.docker .env
+
+# Start with Docker Compose
+docker compose -f docker-compose.simple.yml up -d
+
+# Access admin panel
+open http://localhost:3004/admin
+```
+
+**Default credentials**: admin / admin123 (change in production)
 
 ## ویژگی‌های کلیدی
 
@@ -11,6 +45,8 @@
 - 🐳 **Docker Ready**: نصب آسان با Docker
 - 📈 **مانیتورینگ**: نظارت بر عملکرد سیستم
 - 🔒 **امنیت**: احراز هویت و کنترل دسترسی
+- 📊 **Production Monitoring**: Prometheus and Grafana integration
+- 🔄 **Load Balancing**: Multiple app instances with Nginx
 
 ## نصب سریع با Docker
 
