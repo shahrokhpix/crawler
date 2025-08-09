@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: farsnews-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: farsnews_crawler
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-farsnews_secure_password_2024}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - farsnews-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d farsnews_crawler"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # News Crawler Application
+  farsnews-crawler:
+    build: .
+    container_name: farsnews-crawler-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=farsnews_crawler
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-farsnews_secure_password_2024}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config
+    ports:
+      - "3004:3004"
+    networks:
+      - farsnews-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/api/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  farsnews-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

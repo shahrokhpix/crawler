@@ -1,0 +1,71 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # FarsNews application instances
+  - job_name: 'farsnews-app'
+    scrape_interval: 10s
+    metrics_path: '/health'
+    static_configs:
+      - targets: 
+        - 'app1:3004'
+        - 'app2:3004'
+        - 'app3:3004'
+        - 'app4:3004'
+    scrape_timeout: 5s
+
+  # Nginx load balancer
+  - job_name: 'nginx'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nginx:8080']
+    metrics_path: '/nginx_status'
+
+  # PostgreSQL database
+  - job_name: 'postgres'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['postgres:5432']
+
+  # Redis cache
+  - job_name: 'redis'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['redis:6379']
+
+  # Node.js application metrics (if node_exporter is added)
+  - job_name: 'node-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets:
+        - 'app1:9100'
+        - 'app2:9100'
+        - 'app3:9100'
+        - 'app4:9100'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alert_rules.yml"
+
+# Alerting rules
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - alertmanager:9093
