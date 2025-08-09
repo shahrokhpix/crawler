@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Fars News Crawler Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: farsnews-crawler
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_TYPE=postgresql
+      - DB_NAME=farsnews_crawler
+      - DB_USER=farsnews_user
+      - DB_PASSWORD=${DB_PASSWORD:-farsnews123}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_key_here}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - WORKERS=2
+      - MAX_MEMORY=512M
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - farsnews-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: farsnews-postgres
+    environment:
+      POSTGRES_DB: farsnews_crawler
+      POSTGRES_USER: farsnews_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-farsnews123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - farsnews-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farsnews_user -d farsnews_crawler"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  farsnews-network:
+    driver: bridge
